@@ -28,7 +28,6 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
-    transition: background .2s;
 }
 
 #word {
@@ -36,7 +35,7 @@ body {
     font-size: clamp(3rem, 8vw, 8rem);
     font-weight: bold;
     line-height: 1.1;
-    word-wrap: break-word;
+    transition: opacity .15s, color .2s;
 }
 
 #hint {
@@ -48,10 +47,30 @@ body {
     font-size: 1rem;
     letter-spacing: 1px;
 }
+
+#levelBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    color: black;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+body.level2 #word {
+    color: orange;
+}
 </style>
 </head>
 
 <body>
+
+<button id="levelBtn">Level 2</button>
 
 <div id="word"></div>
 <div id="hint">Click • Space • → Next Sound</div>
@@ -59,167 +78,130 @@ body {
 <script>
 
 // ==========================
-// EDIT YOUR PROMPTS HERE
+// LEVEL 1
 // ==========================
 
-const prompts = [
-    "Dog Barking",
-    "Cat Meowing",
-    "Chainsaw",
-    "Fire Truck",
-    "Baby Crying",
-    "Helicopter",
-    "Thunder",
-    "Rooster",
-    "Lion Roaring",
-    "Motorcycle",
-    "Vacuum Cleaner",
-    "Microwave Beeping",
-    "Alarm Clock",
-    "Rainstorm",
-    "Train Horn",
-    "Crow Cawing",
-    "Horse Galloping",
-    "Duck",
-    "Owl",
-    "Elephant",
-    "Car Starting",
-    "Typing Keyboard",
-    "Soda Can Opening",
-    "Toilet Flushing",
-    "Door Creak",
-    "Glass Breaking",
-    "Wind",
-    "Bee Buzzing",
-    "Snake Hissing",
-    "Monkey",
-    "Pig",
-    "Cow",
-    "Chicken",
-    "Wolf Howling",
-    "Airplane",
-    "Rocket Launch",
-    "Drum Roll",
-    "Whistle",
-    "Popcorn Popping",
-    "Camera Shutter",
-    "Sheep Bleating",
-    "Goat",
-    "Turkey Gobble",
-    "Frog Croaking",
-    "Crickets Chirping",
-    "Seagull",
-    "Dolphin",
-    "Whale Song",
-    "Mouse Squeak",
-    "Bat",
-    "Camel",
-    "Donkey Braying",
-    "Peacock",
-    "Parrot Talking",
-    "Woodpecker",
-    "Pigeon",
-    "Swan",
-    "Goose Honking",
-    "Rattlesnake",
-    "Hyena Laugh",
-    "Chimpanzee",
-    "Gorilla",
-    "Koala",
-    "Penguin",
-    "Seal Barking",
-    "Sea Lion",
-    "Coyote Howl",
-    "Moose",
-    "Deer Call",
-    "Turkey Vulture",
-    "Police Siren",
-    "Ambulance Siren",
-    "Boat Horn",
-    "Fog Horn",
-    "Jet Engine",
-    "Propeller Plane",
-    "Race Car",
-    "Formula 1 Car",
-    "School Bus",
-    "Garbage Truck",
-    "Bulldozer",
-    "Excavator",
-    "Forklift",
-    "Bicycle Bell",
-    "Skateboard",
-    "Roller Coaster",
-    "Subway Train",
-    "Steam Train",
-    "Tractor",
-    "Snowmobile",
-    "Printer",
-    "Photocopier",
-    "Coffee Maker",
-    "Blender",
-    "Hair Dryer",
-    "Electric Toothbrush",
-    "Washing Machine",
-    "Dryer",
-    "Dishwasher",
-    "Electric Mixer",
-    "Pressure Cooker",
-    "Tea Kettle",
-    "Cash Register",
-    "Shopping Cart",
-    "Scissors Cutting",
-    "Stapler",
-    "Tape Dispenser",
-    "Velcro",
-    "Zipper",
-    "Clock Ticking",
-    "Footsteps",
-    "Applause",
-    "Finger Snap",
-    "Clapping",
-    "Cough",
-    "Sneezing",
-    "Snoring",
-    "Laughing",
-    "Yawning",
-    "Hiccup",
-    "Burp",
-    "Whistling",
-    "Heartbeat",
-    "Heavy Breathing",
-    "Knocking",
-    "Doorbell",
-    "Phone Ring",
-    "Cell Phone Vibration",
-    "Keyboard Typing",
-    "Pen Clicking",
-    "Fire Crackling",
-    "Waterfall",
-    "Ocean Waves",
-    "River Flowing",
-    "Wind Chimes",
-    "Earthquake",
-    "Avalanche",
-    "Ice Cracking",
-    "Volcano Erupting",
-    "Leaves Rustling",
-    "Branch Snapping",
-    "Hail",
-    "Dripping Faucet",
-    "Bubble Wrap",
-    "Balloon Popping",
-    "Fireworks",
-    "Church Bell",
-    "School Bell",
-    "Slot Machine",
+const level1Prompts = [
+    "Dog Barking","Cat Meowing","Chainsaw","Fire Truck","Baby Crying",
+    "Helicopter","Thunder","Rooster","Lion Roaring","Motorcycle",
+    "Vacuum Cleaner","Microwave Beeping","Alarm Clock","Rainstorm",
+    "Train Horn","Crow Cawing","Horse Galloping","Duck","Owl",
+    "Elephant","Car Starting","Typing Keyboard","Soda Can Opening",
+    "Toilet Flushing","Door Creak","Glass Breaking","Wind",
+    "Bee Buzzing","Snake Hissing","Monkey","Pig","Cow","Chicken",
+    "Wolf Howling","Airplane","Rocket Launch","Drum Roll","Whistle",
+    "Popcorn Popping","Camera Shutter",
+
+    "Sheep Bleating","Goat","Turkey Gobble","Frog Croaking",
+    "Crickets Chirping","Seagull","Dolphin","Whale Song",
+    "Mouse Squeak","Bat","Camel","Donkey Braying","Peacock",
+    "Parrot Talking","Woodpecker","Pigeon","Swan","Goose Honking",
+    "Rattlesnake","Hyena Laugh","Chimpanzee","Gorilla","Koala",
+    "Penguin","Seal Barking","Sea Lion","Coyote Howl","Moose",
+    "Deer Call","Turkey Vulture",
+
+    "Police Siren","Ambulance Siren","Boat Horn","Fog Horn",
+    "Jet Engine","Propeller Plane","Race Car","Formula 1 Car",
+    "School Bus","Garbage Truck","Bulldozer","Excavator",
+    "Forklift","Bicycle Bell","Skateboard","Roller Coaster",
+    "Subway Train","Steam Train","Tractor","Snowmobile",
+
+    "Printer","Photocopier","Coffee Maker","Blender","Hair Dryer",
+    "Electric Toothbrush","Washing Machine","Dryer","Dishwasher",
+    "Electric Mixer","Pressure Cooker","Tea Kettle","Cash Register",
+    "Shopping Cart","Scissors Cutting","Stapler","Tape Dispenser",
+    "Velcro","Zipper","Clock Ticking",
+
+    "Footsteps","Applause","Finger Snap","Clapping","Cough",
+    "Sneezing","Snoring","Laughing","Yawning","Hiccup","Burp",
+    "Whistling","Heartbeat","Heavy Breathing","Knocking",
+    "Doorbell","Phone Ring","Cell Phone Vibration",
+    "Keyboard Typing","Pen Clicking",
+
+    "Fire Crackling","Waterfall","Ocean Waves","River Flowing",
+    "Wind Chimes","Earthquake","Avalanche","Ice Cracking",
+    "Volcano Erupting","Leaves Rustling","Branch Snapping",
+    "Hail","Dripping Faucet","Bubble Wrap","Balloon Popping",
+    "Fireworks","Church Bell","School Bell","Slot Machine",
     "Crowd Cheering"
+];
+
+// ==========================
+// LEVEL 2
+// ==========================
+
+const level2Prompts = [
+    "Person Stepping on LEGO",
+    "Trying Not to Sneeze",
+    "Goat Screaming Like a Human",
+    "Dinosaur Ordering Coffee",
+    "Grandma Beatboxing",
+    "Zombie Eating Spaghetti",
+    "Chicken Doing Opera",
+    "Alien Learning English",
+    "Robot Laughing",
+    "Robot Crying",
+    "Very Dramatic Yawn",
+    "Tiny Dog Acting Tough",
+    "Huge Dog Scared of a Mouse",
+    "Angry Squirrel",
+    "Confused Chicken",
+    "Sleepy Pirate",
+    "Nervous Vampire",
+    "Wizard With Hiccups",
+    "Ghost Trying to Be Scary",
+    "Ghost With Allergies",
+    "Toilet That Won't Stop Flushing",
+    "Microwave Singing",
+    "Evil Rubber Duck",
+    "Haunted Vacuum Cleaner",
+    "Possessed Blender",
+    "Slow Motion Sneeze",
+    "Underwater Burp",
+    "Shark Laughing",
+    "Fish Out of Water",
+    "Horse Telling a Secret",
+    "Cow Trying to Whisper",
+    "Duck Beatboxing",
+    "Penguin Slipping on Ice",
+    "Unicorn Sneezing",
+    "Dragon With the Flu",
+    "T-Rex Trying to Clap",
+    "Ninja Stubbed Their Toe",
+    "Superhero With a Cold",
+    "Villain Laugh Gone Wrong",
+    "Monster With the Hiccups",
+    "Baby Driving a Race Car",
+    "Pirate Finding Wi-Fi",
+    "Knight Using GPS",
+    "Medieval Alarm Clock",
+    "Caveman Discovering Fireworks",
+    "Someone Pretending to Know the Lyrics",
+    "Awkward First Kiss",
+    "Trying to Open a Stuck Jar",
+    "Eating Extremely Hot Pizza",
+    "Walking on Hot Sand",
+    "Stepping Into an Ice Bath",
+    "Trying to Hold in a Laugh",
+    "Holding in a Burp During a Wedding",
+    "Elevator Full of Awkward Silence",
+    "Getting Jump Scared",
+    "Winning the Lottery",
+    "Losing Rock Paper Scissors Dramatically",
+    "Cat Driving a Motorcycle",
+    "Bee Doing Karaoke",
+    "Hamster Lifting Weights",
+    "Octopus Playing Drums"
 ];
 
 // ==========================
 
 const word = document.getElementById("word");
+const levelBtn = document.getElementById("levelBtn");
 
+let prompts = level1Prompts;
 let bag = [];
+let level2 = false;
 
 function shuffle(array){
     for(let i=array.length-1;i>0;i--){
@@ -229,28 +211,55 @@ function shuffle(array){
 }
 
 function refillBag(){
-    bag=[...prompts];
+    bag = [...prompts];
     shuffle(bag);
 }
 
 function nextWord(){
-    if(bag.length===0) refillBag();
 
-    word.style.opacity=0;
+    if(bag.length===0){
+        refillBag();
+    }
+
+    word.style.opacity = 0;
 
     setTimeout(()=>{
-        word.textContent=bag.pop();
-        word.style.opacity=1;
+        word.textContent = bag.pop();
+        word.style.opacity = 1;
     },120);
+
 }
 
 document.body.addEventListener("click", nextWord);
 
 document.addEventListener("keydown",(e)=>{
+
     if(e.code==="Space" || e.code==="ArrowRight"){
         e.preventDefault();
         nextWord();
     }
+
+});
+
+levelBtn.addEventListener("click",(e)=>{
+
+    e.stopPropagation();
+
+    level2 = !level2;
+
+    if(level2){
+        prompts = level2Prompts;
+        document.body.classList.add("level2");
+        levelBtn.textContent = "Level 1";
+    }else{
+        prompts = level1Prompts;
+        document.body.classList.remove("level2");
+        levelBtn.textContent = "Level 2";
+    }
+
+    refillBag();
+    nextWord();
+
 });
 
 refillBag();
