@@ -4,708 +4,182 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sound Charades</title>
-
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #111;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
-    user-select: none;
-    -webkit-user-select: none;
-    cursor: pointer;
-    touch-action: manipulation;
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    isolation: isolate;
-}
-
-/* The color revealed behind the black curtain */
-#colorBackground {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    background: rgb(40, 167, 69);
-}
-
-/* Black retreats downward by shrinking upward from the bottom */
-#blackCurtain {
-    position: absolute;
-    inset: 0;
-    background: #111;
-    z-index: -1;
-    height: 100%;
-    pointer-events: none;
-    will-change: height;
-}
-
-#word {
-    width: 90%;
-    padding: 20px;
-    font-size: clamp(3rem, 8vw, 8rem);
-    font-weight: bold;
-    line-height: 1.1;
-    overflow-wrap: anywhere;
-    text-shadow: 0 2px 8px rgba(0,0,0,.12);
-    transition: color .2s, opacity .12s;
-}
-
-#hint {
-    position: absolute;
-    bottom: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    color: #aaa;
-    font-size: 1rem;
-    letter-spacing: 1px;
-    pointer-events: none;
-}
-
-#levelBtn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 5;
-    padding: 12px 18px;
-    border: 1px solid #555;
-    border-radius: 8px;
-    background: #fff;
-    color: #111;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
-#levelBtn:active {
-    transform: scale(.97);
-}
-
-body.level2 #word {
-    color: orange;
-}
-
-#word.level1-word {
-    color: white;
-}
-
-body.finished #hint {
-    color: rgba(255,255,255,.85);
-}
-
-@media (max-width: 600px) {
-    #word {
-        font-size: clamp(2.5rem, 12vw, 5rem);
-    }
-
-    #levelBtn {
-        top: 12px;
-        right: 12px;
-        padding: 10px 14px;
-    }
-
-    #hint {
-        bottom: 18px;
-        font-size: .85rem;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #word {
-        transition: none;
-    }
-}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#111;color:white;font-family:Arial,Helvetica,sans-serif;user-select:none;-webkit-user-select:none;cursor:pointer;touch-action:manipulation}
+body{display:flex;justify-content:center;align-items:center;text-align:center;position:relative;isolation:isolate}
+#colorBackground{position:absolute;inset:0;z-index:-2;background:rgb(40,167,69)}
+/* The curtain is anchored to the bottom, so its top edge travels downward. */
+#blackCurtain{position:absolute;left:0;right:0;bottom:0;top:auto;height:100%;background:#111;z-index:-1;pointer-events:none;will-change:height}
+#word{width:90%;padding:20px;font-size:clamp(3rem,8vw,8rem);font-weight:bold;line-height:1.1;overflow-wrap:anywhere;text-shadow:0 2px 8px rgba(0,0,0,.12);transition:color .2s,opacity .12s}
+#hint{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);width:90%;color:#aaa;font-size:1rem;letter-spacing:1px;pointer-events:none}
+#levelBtn,#customBtn{position:absolute;top:20px;z-index:5;padding:12px 18px;border:1px solid #555;border-radius:8px;background:#fff;color:#111;font-weight:bold;font-size:1rem;cursor:pointer}
+#levelBtn{right:20px}#customBtn{left:20px}
+#levelBtn:active,#customBtn:active,#customPanel button:active{transform:scale(.97)}
+#customOverlay{display:none;position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.88);align-items:center;justify-content:center;padding:18px;cursor:default}
+#customOverlay.open{display:flex}
+#customPanel{width:min(560px,100%);max-height:90vh;overflow:auto;background:#202020;border:1px solid #555;border-radius:16px;padding:24px;text-align:left;box-shadow:0 12px 50px rgba(0,0,0,.5)}
+#customPanel h2{font-size:1.6rem;margin-bottom:8px}
+#customPanel p{color:#ccc;line-height:1.4;margin-bottom:16px}
+#customForm{display:flex;gap:8px;margin-bottom:16px}
+#customInput{min-width:0;flex:1;padding:12px;border-radius:8px;border:1px solid #666;background:#111;color:white;font-size:1rem;user-select:text;-webkit-user-select:text;cursor:text}
+#customPanel button{padding:11px 14px;border:0;border-radius:8px;background:#fff;color:#111;font-weight:bold;font-size:.95rem;cursor:pointer}
+#addClueBtn{white-space:nowrap}
+#clueCount{font-size:.95rem;color:#bbb;margin:8px 0}
+#customList{padding-left:26px;margin:0 0 20px;max-height:30vh;overflow:auto}
+#customList li{padding:5px 0;color:#eee}
+.blurred-clue{filter:blur(6px);opacity:.85;user-select:none;-webkit-user-select:none}
+#customPanel .panelActions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+#customPanel #readyBtn{background:#36c96b;color:#07150b}
+#customPanel #closeCustomBtn{background:#444;color:white}
+#customPanel #resetCustomBtn{background:#c62828;color:white;margin-right:auto}
+#customPanel #resetCustomBtn:hover{background:#a91f1f}
+#customPanel button:disabled{cursor:not-allowed;opacity:.5}
+#customMessage{min-height:1.3em;color:#ffcf70;font-size:.9rem;margin:0 0 12px}
+@media(max-width:600px){#levelBtn,#customBtn{top:12px;padding:10px 12px;font-size:.9rem}#levelBtn{right:12px}#customBtn{left:12px}#customPanel{padding:18px}#customForm{flex-direction:column}#addClueBtn{width:100%}}
+body.level2 #word{color:orange}
+body.finished #hint{color:rgba(255,255,255,.85)}
+@media(max-width:600px){#word{font-size:clamp(2.5rem,12vw,5rem)}#levelBtn{top:12px;right:12px;padding:10px 14px}#hint{bottom:18px;font-size:.85rem}}
+@media(prefers-reduced-motion:reduce){#word{transition:none}}
 </style>
 </head>
-
 <body>
-
 <div id="colorBackground"></div>
 <div id="blackCurtain"></div>
-
+<button id="customBtn">Custom</button>
 <button id="levelBtn">Level 2</button>
-
+<div id="customOverlay" role="dialog" aria-modal="true" aria-labelledby="customTitle">
+  <div id="customPanel">
+    <h2 id="customTitle">Custom Clues</h2>
+    <p>Add personal clues for your group.</p>
+    <form id="customForm">
+      <input id="customInput" type="text" maxlength="100" placeholder='e.g. John laughing' autocomplete="off" aria-label="Enter a custom clue">
+      <button id="addClueBtn" type="submit">Add clue</button>
+    </form>
+    <div id="clueCount">0 clues added</div>
+    <ul id="customList"></ul>
+    <div id="customMessage" aria-live="polite"></div>
+    <div class="panelActions">
+      <button id="resetCustomBtn" type="button">Reset clues</button>
+      <button id="closeCustomBtn" type="button">Close</button>
+      <button id="readyBtn" type="button">Play</button>
+    </div>
+  </div>
+</div>
 <div id="word">TAP TO BEGIN</div>
 <div id="hint">Tap anywhere to start</div>
-
 <script>
-
-// ==========================================
-// SETTINGS
-// ==========================================
-
-const TURN_DURATION = 30; // seconds
-
-// ==========================================
-// LEVEL 1 — REALISTIC SOUNDS
-// ==========================================
+const TURN_DURATION = 30;
 
 const level1Prompts = [
-    "Dog Barking",
-    "Cat Meowing",
-    "Chainsaw",
-    "Fire Truck",
-    "Baby Crying",
-    "Helicopter",
-    "Thunder",
-    "Rooster",
-    "Lion Roaring",
-    "Motorcycle",
-    "Vacuum Cleaner",
-    "Microwave Beeping",
-    "Alarm Clock",
-    "Rainstorm",
-    "Train Horn",
-    "Crow Cawing",
-    "Horse Galloping",
-    "Duck",
-    "Owl",
-    "Elephant",
-    "Car Starting",
-    "Typing Keyboard",
-    "Soda Can Opening",
-    "Toilet Flushing",
-    "Door Creak",
-    "Glass Breaking",
-    "Wind",
-    "Bee Buzzing",
-    "Snake Hissing",
-    "Monkey",
-    "Pig",
-    "Cow",
-    "Chicken",
-    "Wolf Howling",
-    "Airplane",
-    "Rocket Launch",
-    "Drum Roll",
-    "Whistle",
-    "Popcorn Popping",
-    "Camera Shutter",
-
-    "Sheep Bleating",
-    "Goat",
-    "Turkey Gobble",
-    "Frog Croaking",
-    "Crickets Chirping",
-    "Seagull",
-    "Dolphin",
-    "Whale Song",
-    "Mouse Squeak",
-    "Bat",
-    "Camel",
-    "Donkey Braying",
-    "Peacock",
-    "Parrot Talking",
-    "Woodpecker",
-    "Pigeon",
-    "Swan",
-    "Goose Honking",
-    "Rattlesnake",
-    "Hyena Laugh",
-    "Chimpanzee",
-    "Gorilla",
-    "Koala",
-    "Penguin",
-    "Seal Barking",
-    "Sea Lion",
-    "Coyote Howl",
-    "Moose",
-    "Deer Call",
-    "Turkey Vulture",
-
-    "Police Siren",
-    "Ambulance Siren",
-    "Boat Horn",
-    "Fog Horn",
-    "Jet Engine",
-    "Propeller Plane",
-    "Race Car",
-    "Formula 1 Car",
-    "School Bus",
-    "Garbage Truck",
-    "Bulldozer",
-    "Excavator",
-    "Forklift",
-    "Bicycle Bell",
-    "Skateboard",
-    "Roller Coaster",
-    "Subway Train",
-    "Steam Train",
-    "Tractor",
-    "Snowmobile",
-
-    "Printer",
-    "Photocopier",
-    "Coffee Maker",
-    "Blender",
-    "Hair Dryer",
-    "Electric Toothbrush",
-    "Washing Machine",
-    "Dryer",
-    "Dishwasher",
-    "Electric Mixer",
-    "Pressure Cooker",
-    "Tea Kettle",
-    "Cash Register",
-    "Shopping Cart",
-    "Scissors Cutting",
-    "Stapler",
-    "Tape Dispenser",
-    "Velcro",
-    "Zipper",
-    "Clock Ticking",
-
-    "Footsteps",
-    "Applause",
-    "Finger Snap",
-    "Clapping",
-    "Cough",
-    "Sneezing",
-    "Snoring",
-    "Laughing",
-    "Yawning",
-    "Hiccup",
-    "Burp",
-    "Whistling",
-    "Heartbeat",
-    "Heavy Breathing",
-    "Knocking",
-    "Doorbell",
-    "Phone Ring",
-    "Cell Phone Vibration",
-    "Keyboard Typing",
-    "Pen Clicking",
-
-    "Fire Crackling",
-    "Waterfall",
-    "Ocean Waves",
-    "River Flowing",
-    "Wind Chimes",
-    "Earthquake",
-    "Avalanche",
-    "Ice Cracking",
-    "Volcano Erupting",
-    "Leaves Rustling",
-    "Branch Snapping",
-    "Hail",
-    "Dripping Faucet",
-    "Bubble Wrap",
-    "Balloon Popping",
-    "Fireworks",
-    "Church Bell",
-    "School Bell",
-    "Slot Machine",
-    "Crowd Cheering"
+"Dog Barking","Cat Meowing","Chainsaw","Fire Truck","Baby Crying","Helicopter","Thunder","Rooster","Lion Roaring","Motorcycle","Vacuum Cleaner","Microwave Beeping","Alarm Clock","Rainstorm","Train Horn","Crow Cawing","Horse Galloping","Duck","Owl","Elephant","Car Starting","Typing Keyboard","Soda Can Opening","Toilet Flushing","Door Creak","Glass Breaking","Wind","Bee Buzzing","Snake Hissing","Monkey","Pig","Cow","Chicken","Wolf Howling","Airplane","Rocket Launch","Drum Roll","Whistle","Popcorn Popping","Camera Shutter",
+"Sheep Bleating","Goat","Turkey Gobble","Frog Croaking","Crickets Chirping","Seagull","Dolphin","Whale Song","Mouse Squeak","Bat","Camel","Donkey Braying","Peacock","Parrot Talking","Woodpecker","Pigeon","Swan","Goose Honking","Rattlesnake","Hyena Laugh","Chimpanzee","Gorilla","Koala","Penguin","Seal Barking","Sea Lion","Coyote Howl","Moose","Deer Call","Turkey Vulture",
+"Police Siren","Ambulance Siren","Boat Horn","Fog Horn","Jet Engine","Propeller Plane","Race Car","Formula 1 Car","School Bus","Garbage Truck","Bulldozer","Excavator","Forklift","Bicycle Bell","Skateboard","Roller Coaster","Subway Train","Steam Train","Tractor","Snowmobile",
+"Printer","Photocopier","Coffee Maker","Blender","Hair Dryer","Electric Toothbrush","Washing Machine","Dryer","Dishwasher","Electric Mixer","Pressure Cooker","Tea Kettle","Cash Register","Shopping Cart","Scissors Cutting","Stapler","Tape Dispenser","Velcro","Zipper","Clock Ticking",
+"Footsteps","Applause","Finger Snap","Clapping","Cough","Sneezing","Snoring","Laughing","Yawning","Hiccup","Burp","Whistling","Heartbeat","Heavy Breathing","Knocking","Doorbell","Phone Ring","Cell Phone Vibration","Keyboard Typing","Pen Clicking",
+"Fire Crackling","Waterfall","Ocean Waves","River Flowing","Wind Chimes","Earthquake","Avalanche","Ice Cracking","Volcano Erupting","Leaves Rustling","Branch Snapping","Hail","Dripping Faucet","Bubble Wrap","Balloon Popping","Fireworks","Church Bell","School Bell","Slot Machine","Crowd Cheering"
 ];
-
-// ==========================================
-// LEVEL 2 — FUNNY, WEIRD SOUNDS
-// ==========================================
 
 const level2Prompts = [
-    "Person Stepping on LEGO",
-    "Trying Not to Sneeze",
-    "Goat Screaming Like a Human",
-    "Dinosaur Ordering Coffee",
-    "Grandma Beatboxing",
-    "Zombie Eating Spaghetti",
-    "Chicken Doing Opera",
-    "Alien Learning English",
-    "Robot Laughing",
-    "Robot Crying",
-    "Very Dramatic Yawn",
-    "Tiny Dog Acting Tough",
-    "Huge Dog Scared of a Mouse",
-    "Angry Squirrel",
-    "Confused Chicken",
-    "Sleepy Pirate",
-    "Nervous Vampire",
-    "Wizard With Hiccups",
-    "Ghost Trying to Be Scary",
-    "Ghost With Allergies",
-    "Toilet That Won't Stop Flushing",
-    "Microwave Singing",
-    "Evil Rubber Duck",
-    "Haunted Vacuum Cleaner",
-    "Possessed Blender",
-    "Slow Motion Sneeze",
-    "Underwater Burp",
-    "Shark Laughing",
-    "Fish Out of Water",
-    "Horse Telling a Secret",
-    "Cow Trying to Whisper",
-    "Duck Beatboxing",
-    "Penguin Slipping on Ice",
-    "Unicorn Sneezing",
-    "Dragon With the Flu",
-    "T-Rex Trying to Clap",
-    "Ninja Stubbed Their Toe",
-    "Superhero With a Cold",
-    "Villain Laugh Gone Wrong",
-    "Monster With the Hiccups",
-    "Baby Driving a Race Car",
-    "Pirate Finding Wi-Fi",
-    "Knight Using GPS",
-    "Medieval Alarm Clock",
-    "Caveman Discovering Fireworks",
-    "Someone Pretending to Know the Lyrics",
-    "Awkward First Kiss",
-    "Trying to Open a Stuck Jar",
-    "Eating Extremely Hot Pizza",
-    "Walking on Hot Sand",
-    "Stepping Into an Ice Bath",
-    "Trying to Hold in a Laugh",
-    "Holding in a Burp During a Wedding",
-    "Elevator Full of Awkward Silence",
-    "Getting Jump Scared",
-    "Winning the Lottery",
-    "Losing Rock Paper Scissors Dramatically",
-    "Cat Driving a Motorcycle",
-    "Bee Doing Karaoke",
-    "Hamster Lifting Weights",
-    "Octopus Playing Drums",
-
-    // New Level 2 additions
-    "Someone Sneezing Seven Times in a Row",
-    "Opening a Bag of Chips in a Silent Room",
-    "Dog Barking at Its Own Reflection",
-    "Someone Getting Their Tongue Stuck to Ice",
-    "Man Blowing Up a Balloon That Keeps Deflating",
-    "Witch Accidentally Turning Herself Into a Chicken",
-    "Cat Hissing at a Cucumber",
-    "Dog Howling Along to an Opera Singer",
-    "Someone Trying to Get a Mosquito Out of Their Ear",
-    "Robot Trying to Dance but Malfunctioning",
-    "Cat Coughing Up a Hairball",
-    "Gorilla Trying to Be Quiet in a Library",
-    "Person Getting a Brain Freeze",
-    "Dog Getting a Bath It Doesn't Want",
-    "Man Trying to Sing While Gargling Water",
-    "Seagull Stealing Someone's Lunch",
-    "Person Walking Into a Spiderweb",
-    "Vampire Sucking Through a Straw",
-    "Monster Trying to Sing a Lullaby",
-    "Dog Having a Nightmare About the Vacuum Cleaner",
-    "Man With a Mouth Full of Peanut Butter",
-    "Penguin Getting the Hiccups",
-    "Person Trying to Hold Back a Gigantic Sneeze",
-    "Goose Protecting Its Babies",
-    "Alien Trying to Imitate Human Laughter",
-
-    // Physical noises added to Level 2
-    "Gargling With an Empty Mouth",
-    "Stomach Growling Loudly",
-    "Wet Shoe Squelching",
-    "Hiccups That Get Progressively Louder",
-    "Slurping the Last Drop Through a Straw",
-    "Mouth Full of Water While Trying Not to Laugh",
-    "Squeaky Voice Cracking Repeatedly",
-    "Trying to Stifle a Sneeze at the Last Second",
-    "Someone Walking on a Sticky Floor",
-    "Balloon Slowly Losing Air",
-    "Sound of Suction Cups Releasing",
-    "Wet Finger Squeaking on Glass",
-    "Trying to Whistle With Extremely Dry Lips",
-    "Finger Sliding Across a Balloon"
+"Person Stepping on LEGO","Trying Not to Sneeze","Goat Screaming Like a Human","Dinosaur Ordering Coffee","Grandma Beatboxing","Zombie Eating Spaghetti","Chicken Doing Opera","Alien Learning English","Robot Laughing","Robot Crying","Very Dramatic Yawn","Tiny Dog Acting Tough","Huge Dog Scared of a Mouse","Angry Squirrel","Confused Chicken","Sleepy Pirate","Nervous Vampire","Wizard With Hiccups","Ghost Trying to Be Scary","Ghost With Allergies","Toilet That Won't Stop Flushing","Microwave Singing","Evil Rubber Duck","Haunted Vacuum Cleaner","Possessed Blender","Slow Motion Sneeze","Underwater Burp","Shark Laughing","Fish Out of Water","Horse Telling a Secret","Cow Trying to Whisper","Duck Beatboxing","Penguin Slipping on Ice","Unicorn Sneezing","Dragon With the Flu","T-Rex Trying to Clap","Ninja Stubbed Their Toe","Superhero With a Cold","Villain Laugh Gone Wrong","Monster With the Hiccups","Baby Driving a Race Car","Pirate Finding Wi-Fi","Knight Using GPS","Medieval Alarm Clock","Caveman Discovering Fireworks","Someone Pretending to Know the Lyrics","Awkward First Kiss","Trying to Open a Stuck Jar","Eating Extremely Hot Pizza","Walking on Hot Sand","Stepping Into an Ice Bath","Trying to Hold in a Laugh","Holding in a Burp During a Wedding","Elevator Full of Awkward Silence","Getting Jump Scared","Winning the Lottery","Losing Rock Paper Scissors Dramatically","Cat Driving a Motorcycle","Bee Doing Karaoke","Hamster Lifting Weights","Octopus Playing Drums",
+"Someone Sneezing Seven Times in a Row","Opening a Bag of Chips in a Silent Room","Dog Barking at Its Own Reflection","Someone Getting Their Tongue Stuck to Ice","Man Blowing Up a Balloon That Keeps Deflating","Witch Accidentally Turning Herself Into a Chicken","Cat Hissing at a Cucumber","Dog Howling Along to an Opera Singer","Someone Trying to Get a Mosquito Out of Their Ear","Robot Trying to Dance but Malfunctioning","Cat Coughing Up a Hairball","Gorilla Trying to Be Quiet in a Library","Person Getting a Brain Freeze","Dog Getting a Bath It Doesn't Want","Man Trying to Sing While Gargling Water","Seagull Stealing Someone's Lunch","Person Walking Into a Spiderweb","Vampire Sucking Through a Straw","Monster Trying to Sing a Lullaby","Dog Having a Nightmare About the Vacuum Cleaner","Man With a Mouth Full of Peanut Butter","Penguin Getting the Hiccups","Person Trying to Hold Back a Gigantic Sneeze","Goose Protecting Its Babies","Alien Trying to Imitate Human Laughter",
+"Gargling With an Empty Mouth","Stomach Growling Loudly","Wet Shoe Squelching","Hiccups That Get Progressively Louder","Slurping the Last Drop Through a Straw","Mouth Full of Water While Trying Not to Laugh","Squeaky Voice Cracking Repeatedly","Trying to Stifle a Sneeze at the Last Second","Someone Walking on a Sticky Floor","Balloon Slowly Losing Air","Sound of Suction Cups Releasing","Wet Finger Squeaking on Glass","Trying to Whistle With Extremely Dry Lips","Finger Sliding Across a Balloon"
 ];
 
-// ==========================================
-// GAME STATE
-// ==========================================
-
-const word = document.getElementById("word");
-const hint = document.getElementById("hint");
-const levelBtn = document.getElementById("levelBtn");
-const curtain = document.getElementById("blackCurtain");
-const colorBackground = document.getElementById("colorBackground");
-
-let prompts = level1Prompts;
-let bag = [];
-let level2 = false;
-let timerRunning = false;
-let timerFinished = false;
-let startTime = 0;
-let animationFrame = null;
-let currentPrompt = "";
-let lastPrompt = "";
-let audioContext = null;
-
-// ==========================================
-// RANDOM PROMPT ORDER
-// ==========================================
-
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
-
-function refillBag() {
-    bag = [...prompts];
-    shuffle(bag);
-
-    // Avoid repeating the previous prompt across reshuffles.
-    if (bag.length > 1 && bag[bag.length - 1] === lastPrompt) {
-        [bag[0], bag[bag.length - 1]] =
-            [bag[bag.length - 1], bag[0]];
-    }
-}
-
-function drawPrompt() {
-    if (bag.length === 0) {
-        refillBag();
-    }
-
-    lastPrompt = currentPrompt;
-    currentPrompt = bag.pop();
-
-    word.style.opacity = "0";
-
-    setTimeout(() => {
-        word.textContent = currentPrompt;
-        word.style.opacity = "1";
-    }, 100);
-}
-
-// ==========================================
-// TIMER COLORS
-// Progress 0.0 = start; 1.0 = time's up.
-// ==========================================
-
-function interpolateColor(a, b, amount) {
-    const start = a.match(/\w\w/g).map(v => parseInt(v, 16));
-    const end = b.match(/\w\w/g).map(v => parseInt(v, 16));
-
-    const result = start.map((value, i) =>
-        Math.round(value + (end[i] - value) * amount)
-    );
-
-    return `rgb(${result[0]}, ${result[1]}, ${result[2]})`;
-}
-
-function getTimerColor(progress) {
-    const stops = [
-        { at: 0.00, color: "28A745" }, // Green
-        { at: 0.50, color: "E6D83B" }, // Yellow
-        { at: 0.75, color: "F28C28" }, // Orange
-        { at: 1.00, color: "D71920" }  // Red
-    ];
-
-    for (let i = 0; i < stops.length - 1; i++) {
-        const first = stops[i];
-        const second = stops[i + 1];
-
-        if (progress <= second.at) {
-            const localProgress =
-                (progress - first.at) /
-                (second.at - first.at);
-
-            return interpolateColor(
-                first.color,
-                second.color,
-                Math.max(0, Math.min(1, localProgress))
-            );
-        }
-    }
-
-    return "rgb(215, 25, 32)";
-}
-
-// ==========================================
-// SOUND EFFECT — SHORT DING
-// ==========================================
-
-function playDing() {
-    try {
-        const AudioContextClass =
-            window.AudioContext || window.webkitAudioContext;
-
-        if (!AudioContextClass) return;
-
-        if (!audioContext) {
-            audioContext = new AudioContextClass();
-        }
-
-        if (audioContext.state === "suspended") {
-            audioContext.resume();
-        }
-
-        const oscillator = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(
-            880, audioContext.currentTime
-        );
-        oscillator.frequency.exponentialRampToValueAtTime(
-            660, audioContext.currentTime + 0.16
-        );
-
-        gain.gain.setValueAtTime(
-            0.0001, audioContext.currentTime
-        );
-        gain.gain.exponentialRampToValueAtTime(
-            0.22, audioContext.currentTime + 0.015
-        );
-        gain.gain.exponentialRampToValueAtTime(
-            0.0001, audioContext.currentTime + 0.35
-        );
-
-        oscillator.connect(gain);
-        gain.connect(audioContext.destination);
-
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.36);
-    } catch (error) {
-        console.warn("Could not play the timer sound.", error);
-    }
-}
-
-// ==========================================
-// TIMER ANIMATION
-// Black curtain retreats DOWNWARD.
-// The colored region grows from TOP to BOTTOM.
-// ==========================================
-
-function stopTimer() {
-    timerRunning = false;
-
-    if (animationFrame !== null) {
-        cancelAnimationFrame(animationFrame);
-        animationFrame = null;
-    }
-}
-
-function resetScreen() {
-    stopTimer();
-
-    timerFinished = false;
-    curtain.style.height = "100%";
-    colorBackground.style.backgroundColor = "rgb(40, 167, 69)";
-    document.body.classList.remove("finished");
-
-    hint.textContent = "Tap anywhere to start";
-}
-
-function startTimer() {
-    stopTimer();
-
-    timerRunning = true;
-    timerFinished = false;
-    startTime = performance.now();
-
-    document.body.classList.remove("finished");
-    hint.textContent = "Make the sound!";
-
-    function animate(now) {
-        if (!timerRunning) return;
-
-        const elapsed = (now - startTime) / 1000;
-        const progress = Math.min(elapsed / TURN_DURATION, 1);
-
-        // At the start the curtain covers the whole screen.
-        // As time passes, its bottom edge moves downward
-        // and its height decreases.
-        const remainingBlack = (1 - progress) * 100;
-
-        curtain.style.height = remainingBlack + "%";
-        colorBackground.style.backgroundColor =
-            getTimerColor(progress);
-
-        if (progress >= 1) {
-            timerRunning = false;
-            timerFinished = true;
-            animationFrame = null;
-
-            curtain.style.height = "0%";
-            colorBackground.style.backgroundColor =
-                "rgb(215, 25, 32)";
-
-            document.body.classList.add("finished");
-            hint.textContent = "TIME'S UP! Tap for the next sound";
-
-            playDing();
-            return;
-        }
-
-        animationFrame = requestAnimationFrame(animate);
-    }
-
-    animationFrame = requestAnimationFrame(animate);
-}
-
-// ==========================================
-// NEXT PROMPT
-// ==========================================
-
-function nextWord() {
+const word=document.getElementById("word"), hint=document.getElementById("hint"), levelBtn=document.getElementById("levelBtn"), customBtn=document.getElementById("customBtn"), curtain=document.getElementById("blackCurtain"), colorBackground=document.getElementById("colorBackground");
+const customOverlay=document.getElementById("customOverlay"), customForm=document.getElementById("customForm"), customInput=document.getElementById("customInput"), customList=document.getElementById("customList"), clueCount=document.getElementById("clueCount"), customMessage=document.getElementById("customMessage"), readyBtn=document.getElementById("readyBtn"), closeCustomBtn=document.getElementById("closeCustomBtn"), resetCustomBtn=document.getElementById("resetCustomBtn");
+let prompts=level1Prompts, bag=[], level2=false, customMode=false, timerRunning=false, startTime=0, animationFrame=null, currentPrompt="", lastPrompt="", audioContext=null;
+let customPrompts=[];
+try { const saved=JSON.parse(localStorage.getItem("soundCharadesCustomClues")||"[]"); if(Array.isArray(saved)) customPrompts=saved.filter(x=>typeof x==="string"&&x.trim()).slice(0,300); } catch(e) { customPrompts=[]; }
+function saveCustomPrompts(){try{localStorage.setItem("soundCharadesCustomClues",JSON.stringify(customPrompts))}catch(e){/* Keep clues available for this page session if storage is unavailable. */}}
+function renderCustomList(){customList.replaceChildren();customPrompts.forEach((clue,index)=>{const li=document.createElement("li");li.className="blurred-clue";li.textContent=clue;li.setAttribute("aria-label",`Hidden custom clue ${index+1}`);li.setAttribute("title","Hidden clue");customList.appendChild(li)});clueCount.textContent=`${customPrompts.length} ${customPrompts.length===1?"clue":"clues"} added`;readyBtn.disabled=customPrompts.length===0;readyBtn.style.opacity=customPrompts.length===0?".5":"1";resetCustomBtn.disabled=customPrompts.length===0;}
+function openCustomPanel(){renderCustomList();customMessage.textContent="";customOverlay.classList.add("open");customInput.value="";setTimeout(()=>customInput.focus(),50)}
+function closeCustomPanel(){customOverlay.classList.remove("open")}
+customBtn.addEventListener("click",event=>{event.stopPropagation();openCustomPanel()});
+customForm.addEventListener("submit",event=>{event.preventDefault();const clue=customInput.value.trim();if(!clue){customMessage.textContent="Enter a clue first.";return}if(customPrompts.length>=300){customMessage.textContent="The custom list has reached 300 clues.";return}customPrompts.push(clue);saveCustomPrompts();customInput.value="";customMessage.textContent="Clue added and hidden.";renderCustomList();customInput.focus()});
+closeCustomBtn.addEventListener("click",event=>{event.stopPropagation();closeCustomPanel()});
+resetCustomBtn.addEventListener("click",event=>{
+  event.stopPropagation();
+  if(customPrompts.length===0)return;
+  const confirmed=window.confirm("Delete all custom clues? This cannot be undone.");
+  if(!confirmed)return;
+  customPrompts=[];
+  saveCustomPrompts();
+  bag=[];
+  lastPrompt="";
+  currentPrompt="";
+  renderCustomList();
+  customMessage.textContent="All custom clues have been reset.";
+  if(customMode){
+    customMode=false;
+    prompts=level2?level2Prompts:level1Prompts;
+    document.body.classList.toggle("level2",level2);
+    customBtn.textContent="Custom";
+    word.textContent="TAP TO BEGIN";
     resetScreen();
-    drawPrompt();
-    startTimer();
-}
-
-// ==========================================
-// LEVEL SWITCHING
-// ==========================================
-
-levelBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-
-    level2 = !level2;
-
-    if (level2) {
-        prompts = level2Prompts;
-        document.body.classList.add("level2");
-        levelBtn.textContent = "Level 1";
-    } else {
-        prompts = level1Prompts;
-        document.body.classList.remove("level2");
-        levelBtn.textContent = "Level 2";
+  }
+});
+customOverlay.addEventListener("click",event=>{event.stopPropagation();if(event.target===customOverlay)closeCustomPanel()});
+readyBtn.addEventListener("click",event=>{event.stopPropagation();if(customPrompts.length===0){customMessage.textContent="Add at least one clue before playing.";return}customMode=true;prompts=[...customPrompts];bag=[];lastPrompt="";closeCustomPanel();document.body.classList.remove("level2");levelBtn.textContent=level2?"Level 1":"Level 2";customBtn.textContent="Custom ✓";nextWord()});
+function shuffle(array){for(let i=array.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]]}}
+function refillBag(){bag=[...prompts];shuffle(bag);if(bag.length>1&&bag[bag.length-1]===lastPrompt){[bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]]}}
+function drawPrompt(){
+  if(bag.length===0){
+    if(customMode){
+      stopTimer();
+      curtain.style.height="100%";
+      colorBackground.style.backgroundColor="#111";
+      word.style.opacity="1";
+      word.textContent="OUT OF CUSTOM CLUES";
+      hint.textContent="Open Custom to add more clues or reset the list";
+      document.body.classList.remove("finished");
+      return false;
     }
-
     refillBag();
-    nextWord();
-});
+  }
+  lastPrompt=currentPrompt;
+  currentPrompt=bag.pop();
+  word.style.opacity="0";
+  setTimeout(()=>{word.textContent=currentPrompt;word.style.opacity="1"},100);
+  return true;
+}
+function interpolateColor(a,b,t){const start=a.match(/\w\w/g).map(v=>parseInt(v,16)),end=b.match(/\w\w/g).map(v=>parseInt(v,16));const c=start.map((v,i)=>Math.round(v+(end[i]-v)*t));return `rgb(${c[0]}, ${c[1]}, ${c[2]})`}
+function getTimerColor(p){const stops=[{at:0,color:"28A745"},{at:.5,color:"E6D83B"},{at:.75,color:"F28C28"},{at:1,color:"D71920"}];for(let i=0;i<stops.length-1;i++){const a=stops[i],b=stops[i+1];if(p<=b.at)return interpolateColor(a.color,b.color,Math.max(0,Math.min(1,(p-a.at)/(b.at-a.at))))}return "rgb(215,25,32)"}
 
-// ==========================================
-// TAP / CLICK TO ADVANCE
-// ==========================================
-
-document.body.addEventListener("click", (event) => {
-    if (event.target === levelBtn) return;
-    nextWord();
-});
-
-// Keyboard support
-document.addEventListener("keydown", (event) => {
-    if (event.code === "Space" || event.code === "ArrowRight") {
-        event.preventDefault();
-        nextWord();
-    }
-});
-
-// ==========================================
-// INITIAL STATE
-// ==========================================
-
-refillBag();
-resetScreen();
-
+// A softer, cleaner two-note bell instead of the harsher descending electronic chirp.
+function playDing(){
+  try{
+    const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContextClass)return;
+    if(!audioContext)audioContext=new AudioContextClass();
+    if(audioContext.state==="suspended")audioContext.resume();
+    const now=audioContext.currentTime;
+    [[1046.5,0],[1318.5,.095]].forEach(([frequency,offset])=>{
+      const osc=audioContext.createOscillator(), gain=audioContext.createGain();
+      osc.type="sine";
+      osc.frequency.setValueAtTime(frequency,now+offset);
+      gain.gain.setValueAtTime(0.0001,now+offset);
+      gain.gain.linearRampToValueAtTime(0.12,now+offset+.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001,now+offset+.65);
+      osc.connect(gain);gain.connect(audioContext.destination);
+      osc.start(now+offset);osc.stop(now+offset+.68);
+    });
+  }catch(error){console.warn("Could not play the timer sound.",error)}
+}
+function stopTimer(){timerRunning=false;if(animationFrame!==null){cancelAnimationFrame(animationFrame);animationFrame=null}}
+function resetScreen(){stopTimer();curtain.style.height="100%";colorBackground.style.backgroundColor="rgb(40,167,69)";document.body.classList.remove("finished");hint.textContent="Tap anywhere to start"}
+function startTimer(){stopTimer();timerRunning=true;startTime=performance.now();document.body.classList.remove("finished");hint.textContent="Make the sound!";
+  function animate(now){if(!timerRunning)return;const progress=Math.min((now-startTime)/1000/TURN_DURATION,1);curtain.style.height=((1-progress)*100)+"%";colorBackground.style.backgroundColor=getTimerColor(progress);
+    if(progress>=1){timerRunning=false;animationFrame=null;curtain.style.height="0%";colorBackground.style.backgroundColor="rgb(215,25,32)";document.body.classList.add("finished");hint.textContent="TIME'S UP! Tap for the next sound";playDing();return}
+    animationFrame=requestAnimationFrame(animate)
+  }
+  animationFrame=requestAnimationFrame(animate)
+}
+function nextWord(){if(customMode)prompts=[...customPrompts];resetScreen();if(drawPrompt())startTimer()}
+levelBtn.addEventListener("click",event=>{event.stopPropagation();customMode=false;customBtn.textContent="Custom";level2=!level2;if(level2){prompts=level2Prompts;document.body.classList.add("level2");levelBtn.textContent="Level 1"}else{prompts=level1Prompts;document.body.classList.remove("level2");levelBtn.textContent="Level 2"}refillBag();nextWord()});
+document.body.addEventListener("click",event=>{if(event.target===levelBtn||event.target===customBtn||customOverlay.classList.contains("open"))return;nextWord()});
+document.addEventListener("keydown",event=>{if(customOverlay.classList.contains("open")){if(event.key==="Escape")closeCustomPanel();return}if(event.code==="Space"||event.code==="ArrowRight"){event.preventDefault();nextWord()}});
+refillBag();resetScreen();renderCustomList();
 </script>
 </body>
 </html>
