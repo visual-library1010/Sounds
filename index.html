@@ -120,7 +120,7 @@ resetCustomBtn.addEventListener("click",event=>{
   }
 });
 customOverlay.addEventListener("click",event=>{event.stopPropagation();if(event.target===customOverlay)closeCustomPanel()});
-readyBtn.addEventListener("click",event=>{event.stopPropagation();if(customPrompts.length===0){customMessage.textContent="Add at least one clue before playing.";return}customMode=true;prompts=[...customPrompts];bag=[];lastPrompt="";closeCustomPanel();document.body.classList.remove("level2");levelBtn.textContent=level2?"Level 1":"Level 2";customBtn.textContent="Custom ✓";nextWord()});
+readyBtn.addEventListener("click",event=>{event.stopPropagation();if(customPrompts.length===0){customMessage.textContent="Add at least one clue before playing.";return}customMode=true;prompts=[...customPrompts];bag=[];lastPrompt="";refillBag();closeCustomPanel();document.body.classList.remove("level2");levelBtn.textContent=level2?"Level 1":"Level 2";customBtn.textContent="Custom ✓";nextWord()});
 function shuffle(array){for(let i=array.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]]}}
 function refillBag(){bag=[...prompts];shuffle(bag);if(bag.length>1&&bag[bag.length-1]===lastPrompt){[bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]]}}
 function drawPrompt(){
