@@ -41,6 +41,23 @@ body.level2 #word{color:orange}
 body.finished #hint{color:rgba(255,255,255,.85)}
 @media(max-width:600px){#word{font-size:clamp(2.5rem,12vw,5rem)}#levelBtn{top:12px;right:12px;padding:10px 14px}#hint{bottom:18px;font-size:.85rem}}
 @media(prefers-reduced-motion:reduce){#word{transition:none}}
+
+#spinnerOverlay{position:fixed;inset:0;z-index:4;background:#111;display:flex;align-items:center;justify-content:center;padding:24px;cursor:default}
+#spinnerPanel{width:min(520px,100%);display:flex;flex-direction:column;align-items:center;gap:16px}
+#spinnerTitle{font-size:clamp(1.5rem,5vw,2.4rem);font-weight:800;letter-spacing:.02em}
+#spinnerInstructions{color:#bbb;font-size:1rem;line-height:1.4;max-width:390px}
+#wheelWrap{position:relative;width:min( min(78vw, 390px), 58vh);aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none}
+#wheel{width:100%;height:100%;display:block;border-radius:50%;will-change:transform;filter:drop-shadow(0 10px 28px rgba(0,0,0,.55))}
+#wheelPointer{display:none}
+#wheelHub{position:absolute;left:50%;top:50%;width:24px;height:24px;transform:translate(-50%,-50%);border-radius:50%;background:#fff;border:4px solid #222;box-shadow:0 2px 8px #0008;pointer-events:none}
+#spinResult{min-height:2rem;font-size:1.25rem;font-weight:bold;color:#ffd166}
+#startGameBtn{display:none;padding:14px 28px;border:0;border-radius:10px;background:#36c96b;color:#07150b;font-weight:bold;font-size:1.1rem;cursor:pointer}
+#startGameBtn.visible{display:block}
+#spinAgainBtn{display:none;border:0;background:transparent;color:#bbb;text-decoration:underline;font-size:.95rem;padding:8px;cursor:pointer}
+#spinAgainBtn.visible{display:block}
+#spinnerOverlay.has-result #spinnerInstructions{color:#ddd}
+@media(max-width:600px){#spinnerOverlay{padding:18px}#spinnerPanel{gap:13px}#wheelWrap{width:min(78vw, 48vh)}#wheelHub{width:46px;height:46px}}
+
 </style>
 </head>
 <body>
@@ -66,6 +83,32 @@ body.finished #hint{color:rgba(255,255,255,.85)}
     </div>
   </div>
 </div>
+
+<div id="spinnerOverlay" aria-label="Choose who goes first">
+  <div id="spinnerPanel">
+    <div id="spinnerTitle">WHO GOES FIRST?</div>
+    <div id="spinnerInstructions">Place the phone in the middle of the group. Swipe the arrow to spin. Whoever it points toward goes first.</div>
+    <div id="wheelWrap">
+      <svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="A freely rotating arrow">
+        <circle cx="200" cy="200" r="194" fill="#202020" stroke="#eee" stroke-width="5"/>
+        <circle cx="200" cy="200" r="178" fill="none" stroke="#555" stroke-width="2"/>
+        <g stroke="#aaa" stroke-width="3" opacity=".8">
+          <path d="M200 15 V34 M200 366 V385 M15 200 H34 M366 200 H385"/>
+          <path d="M69 69 L83 83 M317 317 L331 331 M331 69 L317 83 M83 317 L69 331"/>
+        </g>
+        <g id="arrowGraphic" transform="rotate(0 200 200)">
+          <path d="M200 34 L250 202 L216 187 L216 354 L184 354 L184 187 L150 202 Z" fill="#ffd166" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M200 54 L232 184 L200 169 L168 184 Z" fill="#fff0bd" opacity=".55"/>
+        </g>
+      </svg>
+      <div id="wheelHub"></div>
+    </div>
+    <div id="spinResult" aria-live="polite">Swipe to spin</div>
+    <button id="startGameBtn" type="button">Start Game</button>
+    <button id="spinAgainBtn" type="button">Spin Again</button>
+  </div>
+</div>
+
 <div id="word">TAP TO BEGIN</div>
 <div id="hint">Tap anywhere to start</div>
 <script>
@@ -120,7 +163,77 @@ resetCustomBtn.addEventListener("click",event=>{
   }
 });
 customOverlay.addEventListener("click",event=>{event.stopPropagation();if(event.target===customOverlay)closeCustomPanel()});
-readyBtn.addEventListener("click",event=>{event.stopPropagation();if(customPrompts.length===0){customMessage.textContent="Add at least one clue before playing.";return}customMode=true;prompts=[...customPrompts];bag=[];lastPrompt="";refillBag();closeCustomPanel();document.body.classList.remove("level2");levelBtn.textContent=level2?"Level 1":"Level 2";customBtn.textContent="Custom ✓";nextWord()});
+readyBtn.addEventListener("click",event=>{event.stopPropagation();if(customPrompts.length===0){customMessage.textContent="Add at least one clue before playing.";return}customMode=true;prompts=[...customPrompts];bag=[];lastPrompt="";refillBag();closeCustomPanel();document.body.classList.remove("level2");levelBtn.textContent=level2?"Level 1":"Level 2";customBtn.textContent="Custom ✓";if(spinnerOverlay.style.display==="none")nextWord()});
+
+// --- Start-of-game free-rotation arrow spinner ---
+const spinnerOverlay=document.getElementById("spinnerOverlay");
+const wheel=document.getElementById("wheel");
+const arrowGraphic=document.getElementById("arrowGraphic");
+const wheelWrap=document.getElementById("wheelWrap");
+const spinResult=document.getElementById("spinResult");
+const startGameBtn=document.getElementById("startGameBtn");
+const spinAgainBtn=document.getElementById("spinAgainBtn");
+let wheelAngle=0, spinning=false, pointerDown=false, lastPointerAngle=0, lastPointerTime=0, angularVelocity=0, spinFrame=null, selectedDirection=false;
+function setWheelAngle(angle){wheelAngle=angle;arrowGraphic.setAttribute("transform",`rotate(${wheelAngle} 200 200)`) }
+function stopWheel(){
+  spinning=false;pointerDown=false;
+  if(spinFrame!==null){cancelAnimationFrame(spinFrame);spinFrame=null}
+  selectedDirection=true;
+  spinResult.textContent="Whoever the arrow points toward goes first!";
+  spinnerOverlay.classList.add("has-result");
+  startGameBtn.classList.add("visible");
+  spinAgainBtn.classList.add("visible");
+}
+function animateWheel(){
+  if(!spinning)return;
+  angularVelocity*=.986;
+  setWheelAngle(wheelAngle+angularVelocity);
+  if(Math.abs(angularVelocity)<.12){stopWheel();return}
+  spinFrame=requestAnimationFrame(animateWheel);
+}
+function pointerAngle(event){
+  const rect=wheelWrap.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  return Math.atan2(event.clientY-cy,event.clientX-cx)*180/Math.PI;
+}
+wheelWrap.addEventListener("pointerdown",event=>{
+  if(spinning)return;
+  event.preventDefault();pointerDown=true;wheelWrap.setPointerCapture(event.pointerId);
+  lastPointerAngle=pointerAngle(event);lastPointerTime=performance.now();angularVelocity=0;
+  selectedDirection=false;startGameBtn.classList.remove("visible");spinAgainBtn.classList.remove("visible");spinnerOverlay.classList.remove("has-result");
+  spinResult.textContent="Swipe around the arrow, then let go!";
+});
+wheelWrap.addEventListener("pointermove",event=>{
+  if(!pointerDown)return;
+  event.preventDefault();
+  const now=performance.now(),angle=pointerAngle(event);
+  let delta=angle-lastPointerAngle;
+  if(delta>180)delta-=360;if(delta< -180)delta+=360;
+  const dt=Math.max(1,now-lastPointerTime);
+  setWheelAngle(wheelAngle+delta);
+  angularVelocity=Math.max(-35,Math.min(35,delta/dt*16));
+  lastPointerAngle=angle;lastPointerTime=now;
+});
+function releaseWheel(){
+  if(!pointerDown)return;
+  pointerDown=false;
+  if(Math.abs(angularVelocity)<1.2)angularVelocity=(Math.random()<.5?-1:1)*(5+Math.random()*3);
+  angularVelocity=Math.sign(angularVelocity)*Math.max(5,Math.min(35,Math.abs(angularVelocity)));
+  spinning=true;spinResult.textContent="Spinning...";
+  spinFrame=requestAnimationFrame(animateWheel);
+}
+wheelWrap.addEventListener("pointerup",releaseWheel);
+wheelWrap.addEventListener("pointercancel",releaseWheel);
+spinAgainBtn.addEventListener("click",event=>{
+  event.stopPropagation();if(spinning)return;
+  selectedDirection=false;spinnerOverlay.classList.remove("has-result");startGameBtn.classList.remove("visible");spinAgainBtn.classList.remove("visible");spinResult.textContent="Swipe to spin";
+});
+startGameBtn.addEventListener("click",event=>{
+  event.stopPropagation();if(!selectedDirection)return;
+  spinnerOverlay.style.display="none";
+  hint.textContent="The arrow chooses who goes first!";
+  nextWord();
+});
+
 function shuffle(array){for(let i=array.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]]}}
 function refillBag(){bag=[...prompts];shuffle(bag);if(bag.length>1&&bag[bag.length-1]===lastPrompt){[bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]]}}
 function drawPrompt(){
@@ -176,9 +289,9 @@ function startTimer(){stopTimer();timerRunning=true;startTime=performance.now();
   animationFrame=requestAnimationFrame(animate)
 }
 function nextWord(){if(customMode)prompts=[...customPrompts];resetScreen();if(drawPrompt())startTimer()}
-levelBtn.addEventListener("click",event=>{event.stopPropagation();customMode=false;customBtn.textContent="Custom";level2=!level2;if(level2){prompts=level2Prompts;document.body.classList.add("level2");levelBtn.textContent="Level 1"}else{prompts=level1Prompts;document.body.classList.remove("level2");levelBtn.textContent="Level 2"}refillBag();nextWord()});
-document.body.addEventListener("click",event=>{if(event.target===levelBtn||event.target===customBtn||customOverlay.classList.contains("open"))return;nextWord()});
-document.addEventListener("keydown",event=>{if(customOverlay.classList.contains("open")){if(event.key==="Escape")closeCustomPanel();return}if(event.code==="Space"||event.code==="ArrowRight"){event.preventDefault();nextWord()}});
+levelBtn.addEventListener("click",event=>{event.stopPropagation();customMode=false;customBtn.textContent="Custom";level2=!level2;if(level2){prompts=level2Prompts;document.body.classList.add("level2");levelBtn.textContent="Level 1"}else{prompts=level1Prompts;document.body.classList.remove("level2");levelBtn.textContent="Level 2"}refillBag();if(spinnerOverlay.style.display==="none")nextWord()});
+document.body.addEventListener("click",event=>{if(event.target===levelBtn||event.target===customBtn||customOverlay.classList.contains("open")||spinnerOverlay.style.display!=="none")return;nextWord()});
+document.addEventListener("keydown",event=>{if(customOverlay.classList.contains("open")){if(event.key==="Escape")closeCustomPanel();return}if(spinnerOverlay.style.display!=="none")return;if(event.code==="Space"||event.code==="ArrowRight"){event.preventDefault();nextWord()}});
 refillBag();resetScreen();renderCustomList();
 </script>
 </body>
